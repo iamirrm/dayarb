@@ -1,107 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ماشین حساب آرب روزانه</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ماشین حساب آربیتراژ</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:16px;background:linear-gradient(135deg,#eef4ff,#f5efff);color:#18181b;font-family:Tahoma,Arial,sans-serif}
-.app{max-width:620px;margin:auto;background:#fff;border-radius:20px;padding:19px;box-shadow:0 8px 30px #00000012}
-h1{font-size:24px;margin:0 0 6px}
-.sub{color:#71717a;font-size:13px;margin-bottom:16px}
-label{display:block;font-weight:700;margin:9px 0 6px}
-input{width:100%;padding:12px;border:1px solid #c7d2fe;border-radius:11px;font-size:18px;outline:none}
-input:focus{border-color:#6366f1;box-shadow:0 0 0 3px #6366f122}
-.row{display:flex;gap:8px}
-button{border:0;border-radius:10px;padding:10px 9px;font-size:14px;font-weight:700;cursor:pointer;margin-top:9px}
-.normal{background:#2563eb;color:#fff;flex:1}
-.loss{background:#7c3aed;color:#fff;flex:1}
-.gray{background:#e8e7f3;color:#3730a3;flex:1}
-.card{margin-top:14px;padding:14px;border-radius:14px;background:#f8f8ff;border:1px solid #e0e7ff}
-.big{font-size:23px;font-weight:800;margin:7px 0}
-.good{color:#1d4ed8}.bad{color:#6d28d9}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.stat{background:#fff;border:1px solid #e4e4e7;border-radius:11px;padding:9px;font-size:13px}
-.stat b{display:block;font-size:17px;margin-top:3px}
-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}
-th,td{padding:8px 4px;border-bottom:1px solid #e4e4e7;text-align:center}
-.empty{color:#71717a;text-align:center}
-.note{font-size:11px;color:#71717a;line-height:1.8;margin-top:10px}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#0f1115;color:#f5f5f5;display:flex;justify-content:center;padding:24px}
+.card{width:min(430px,100%);background:#191c22;border:1px solid #2b3039;border-radius:20px;padding:22px;box-shadow:0 12px 40px #0005}
+h1{text-align:center;margin:0 0 18px;font-size:24px}
+label{display:block;margin:14px 0 7px;color:#b9c0cc;font-size:14px}
+input{width:100%;padding:14px;border-radius:12px;border:1px solid #343a45;background:#101217;color:#fff;font-size:18px;outline:none}
+input:focus{border-color:#6d7cff}
+button{width:100%;margin-top:18px;padding:14px;border:0;border-radius:12px;background:#6875ff;color:#fff;font-size:17px;font-weight:bold;cursor:pointer}
+button:active{transform:scale(.99)}
+.result{margin-top:18px;padding:16px;border-radius:14px;background:#101217;border:1px solid #2d333d}
+.row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #272c34}
+.row:last-child{border-bottom:0}
+.value{font-weight:bold}
+.note{font-size:12px;color:#8f98a8;text-align:center;margin-top:15px;line-height:1.8}
 </style>
 </head>
 <body>
-<div class="app">
-<h1>ماشین حساب آرب</h1>
-<div class="sub">هر خط ۲۳٬۰۰۰ تومان • کمیسیون هر آرب ۳۵۰٬۰۰۰ تومان</div>
+<div class="card">
+<h1>🧮 ماشین حساب آربیتراژ</h1>
 
-<label for="lines">تعداد خط‌های آرب</label>
-<input id="lines" type="number" min="0" step="1" inputmode="numeric" placeholder="مثلاً ۲۰">
+<label for="lines">تعداد لاین</label>
+<input id="lines" type="number" min="0" step="1" placeholder="مثلاً 20">
 
-<div class="row">
-<button class="normal" onclick="add(false)">➕ آرب عادی</button>
-<button class="loss" onclick="add(true)">🔻 آرب ضرری</button>
+<label for="unit">ارزش هر لاین (تومان)</label>
+<input id="unit" type="number" min="0" step="1000" value="23000">
+
+<label for="fee">کارمزد (تومان)</label>
+<input id="fee" type="number" min="0" step="10000" value="400000">
+
+<button id="calc">محاسبه</button>
+
+<div class="result" id="result">
+  <div class="row"><span>ارزش لاین‌ها</span><span class="value" id="gross">۰ تومان</span></div>
+  <div class="row"><span>سود خالص</span><span class="value" id="profit">۰ تومان</span></div>
+  <div class="row"><span>مبلغ در حالت ضرر</span><span class="value" id="loss">۰ تومان</span></div>
 </div>
 
-<div id="last" class="card" style="display:none"></div>
-
-<div class="row">
-<button class="gray" onclick="undo()">حذف آخرین ثبت</button>
-<button class="gray" onclick="clearDay()">پاک کردن روز</button>
-</div>
-
-<div id="summary" class="card"></div>
-<div id="list"></div>
-
-<div class="note">
-<strong>محاسبه:</strong><br>
-آرب عادی = (خط × ۲۳٬۰۰۰) − ۳۵۰٬۰۰۰<br>
-آرب ضرری = (خط × ۲۳٬۰۰۰) + ۳۵۰٬۰۰۰ کسر از کارکرد روز
-</div>
+<div class="note">فرمول سود: تعداد لاین × ۲۳٬۰۰۰ − ۴۰۰٬۰۰۰<br>فرمول ضرر: تعداد لاین × ۲۳٬۰۰۰ + ۴۰۰٬۰۰۰</div>
 </div>
 
 <script>
-const RATE=23000, COMM=350000, KEY="arb_day_v3";
-let items=JSON.parse(localStorage.getItem(KEY)||"[]");
+const lines = document.getElementById('lines');
+const unit = document.getElementById('unit');
+const fee = document.getElementById('fee');
 
-function toman(n){return new Intl.NumberFormat("fa-IR").format(Math.round(Math.abs(n)))+" تومان"}
-function count(n){return new Intl.NumberFormat("fa-IR").format(n)}
-function save(){localStorage.setItem(KEY,JSON.stringify(items))}
+function fa(n){ return Math.round(n).toLocaleString('fa-IR') + ' تومان'; }
 
-function add(isLoss){
- const input=document.getElementById("lines"), lines=Number(input.value);
- if(!Number.isInteger(lines)||lines<0){alert("لطفاً تعداد خط را درست وارد کن.");return}
- const gross=lines*RATE, effect=isLoss?-(gross+COMM):gross-COMM;
- items.push({lines,isLoss,gross,effect}); save();
- const last=document.getElementById("last"); last.style.display="block";
- last.innerHTML=`<div>ثبت شد: <b>${isLoss?"آرب ضرری 🔻":"آرب عادی ➕"}</b></div>
- <div>${count(lines)} خط — مبلغ خطوط: ${toman(gross)}</div>
- <div class="${effect>=0?"good":"bad"} big">${effect>=0?"+":"−"} ${toman(effect)}</div>`;
- input.value=""; input.focus(); render();
+function calc(){
+  const l = Math.max(0, Number(lines.value) || 0);
+  const u = Math.max(0, Number(unit.value) || 0);
+  const f = Math.max(0, Number(fee.value) || 0);
+  const gross = l * u;
+  document.getElementById('gross').textContent = fa(gross);
+  document.getElementById('profit').textContent = fa(gross - f);
+  document.getElementById('loss').textContent = fa(gross + f);
 }
-function undo(){if(!items.length)return;items.pop();save();render()}
-function clearDay(){if(items.length&&confirm("همه ثبت‌های امروز پاک شود؟")){items=[];save();document.getElementById("last").style.display="none";render()}}
-function render(){
- const normal=items.filter(x=>!x.isLoss), losses=items.filter(x=>x.isLoss);
- const totalLines=items.reduce((s,x)=>s+x.lines,0);
- const normalComm=normal.length*COMM, lossGross=losses.reduce((s,x)=>s+x.gross,0);
- const lossDeduction=lossGross+losses.length*COMM, net=items.reduce((s,x)=>s+x.effect,0);
- document.getElementById("summary").innerHTML=`<b>گزارش امروز</b>
- <div class="big ${net>=0?"good":"bad"}">${net>=0?"کارکرد خالص":"کسر / ضرر خالص"}: ${net<0?"− ":"+ "}${toman(net)}</div>
- <div class="stats">
- <div class="stat">تعداد آرب<b>${count(items.length)}</b></div>
- <div class="stat">مجموع خط‌ها<b>${count(totalLines)}</b></div>
- <div class="stat">آرب عادی<b>${count(normal.length)}</b></div>
- <div class="stat">آرب ضرری<b>${count(losses.length)}</b></div>
- <div class="stat">کمیسیون عادی<b>${toman(normalComm)}</b></div>
- <div class="stat">کسر آرب ضرری<b class="bad">${toman(lossDeduction)}</b></div>
- </div>`;
- if(!items.length){document.getElementById("list").innerHTML='<div class="card empty">هنوز آربی ثبت نشده.</div>';return}
- let rows=items.map((x,i)=>`<tr><td>${count(i+1)}</td><td>${x.isLoss?"ضرری 🔻":"عادی ➕"}</td><td>${count(x.lines)}</td><td>${toman(x.gross)}</td><td class="${x.effect>=0?"good":"bad"}">${x.effect>=0?"+":"−"}${toman(x.effect)}</td></tr>`).join("");
- document.getElementById("list").innerHTML=`<div class="card"><b>ثبت‌های امروز</b><table><thead><tr><th>#</th><th>نوع</th><th>خط</th><th>مبلغ</th><th>اثر روز</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
-document.getElementById("lines").addEventListener("keydown",e=>{if(e.key==="Enter")add(false)});
-render();
+document.getElementById('calc').addEventListener('click', calc);
+[lines,unit,fee].forEach(x=>x.addEventListener('input',calc));
+calc();
 </script>
 </body>
 </html>
